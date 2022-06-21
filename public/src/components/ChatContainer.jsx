@@ -80,12 +80,6 @@ export default function ChatContainer({ currentChat, socket }) {
   }, []);
 
   useEffect(() => {
-    console.log(socket, "VVVVV");
-  }, [socket]);
-
-  console.log(socket);
-
-  useEffect(() => {
     arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
   }, [arrivalMessage]);
 
