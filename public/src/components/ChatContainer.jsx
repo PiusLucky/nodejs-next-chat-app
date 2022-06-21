@@ -58,7 +58,11 @@ export default function ChatContainer({ currentChat, socket }) {
       message: msg,
       // for sending of messages in "IMAGE" format [RESERVED]
       // image: msg,
+      // for sending of messages in "FILE" format [RESERVED]
+      // file: msg,
       offerId: "62af2ca2ace36703c5f7fb72",
+      //type === 'status'
+      //type === 'normal'
     });
 
     const msgs = [...messages];
