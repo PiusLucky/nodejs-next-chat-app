@@ -4,7 +4,6 @@ import ChatInput from "./ChatInput";
 import Logout from "./Logout";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
-import { sendMessageRoute, recieveMessageRoute } from "../utils/APIRoutes";
 
 export default function ChatContainer({ currentChat, socket }) {
   const [messages, setMessages] = useState([]);
@@ -17,14 +16,17 @@ export default function ChatContainer({ currentChat, socket }) {
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
     async function getResponse() {
-      const offerId = "62af2ca2ace36703c5f7fb72"; //demo -- offerId
-      const response = await axios.post(recieveMessageRoute, {
-        senderId: data._id,
-        offerId,
-        receiverId: currentChat._id,
-      });
+      const offerId = "62d7e9c0d83819013a2865bd"; //demo -- offerId
+      const response = await axios.get(
+        `http://127.0.0.1:5000/api/v2/market/offer/chat/${data._id}/${offerId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.REACT_APP_TOKEN}`,
+          },
+        }
+      );
       console.log(response);
-      setMessages(response.data.message);
+      setMessages(response.data.data);
     }
     getResponse();
   }, [currentChat]);
@@ -46,23 +48,15 @@ export default function ChatContainer({ currentChat, socket }) {
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
     await socket.emit("send-trade-message", {
-      to: currentChat._id,
-      from: data._id,
-      msg,
-    });
-
-    await axios.post(sendMessageRoute, {
       from: data._id,
       to: currentChat._id,
-      // for sending of messages in "TEXT" format
+      // for sending of message in "TEXT" format
       message: msg,
-      // for sending of messages in "IMAGE" format [RESERVED]
+      // for sending of message in "IMAGE" format [RESERVED]
       // image: msg,
-      // for sending of messages in "FILE" format [RESERVED]
-      // file: msg,
-      offerId: "62af2ca2ace36703c5f7fb72",
-      //type === 'status'
-      //type === 'normal'
+      offerId: "62d7e9c0d83819013a2865bd",
+      // type === 'status'
+      // type === 'normal'
     });
 
     const msgs = [...messages];
@@ -73,7 +67,6 @@ export default function ChatContainer({ currentChat, socket }) {
   useEffect(() => {
     if (socket) {
       socket.on("receive-trade-message", (msg) => {
-        console.log(msg);
         setArrivalMessage({ fromSelf: false, message: msg });
       });
     }
@@ -86,6 +79,8 @@ export default function ChatContainer({ currentChat, socket }) {
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  console.log(messages);
 
   return (
     <Container>

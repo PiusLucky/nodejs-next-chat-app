@@ -8,7 +8,7 @@ import ChatContainer from "../components/ChatContainer";
 import Contacts from "../components/Contacts";
 import Welcome from "../components/Welcome";
 
-const socket = io.connect(socketExternalClient);
+const socket = io(socketExternalClient);
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export default function Chat() {
   useEffect(() => {
     socket.emit("users-on-mount", "mount");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket?.current]);
+  }, [socket]);
 
   useEffect(() => {
     if (!localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)) {
@@ -53,8 +53,6 @@ export default function Chat() {
   const handleChatChange = (chat) => {
     setCurrentChat(chat);
   };
-
-  console.log(currentUser);
 
   return (
     <>

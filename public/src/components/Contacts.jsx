@@ -8,17 +8,23 @@ export default function Contacts({ contacts, changeChat, socket }) {
   const [currentUserImage, setCurrentUserImage] = useState(null);
   const [currentSelected, setCurrentSelected] = useState(null);
   const [allAvailableUsers, setAllAvailableUsers] = useState(null);
+  const data = JSON.parse(
+    localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
+  );
 
   useEffect(() => {
-    const data = JSON.parse(
-      localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-    );
     setCurrentUserName(data.username);
     setCurrentUserImage(data.avatarImage);
   }, []);
+
   const changeCurrentChat = (index, contact) => {
+    const users = {
+      initiator: data._id,
+      guest: contact._id,
+    };
     setCurrentSelected(index);
     changeChat(contact);
+    socket.emit("join-room", users);
   };
 
   useEffect(() => {
@@ -26,6 +32,15 @@ export default function Contacts({ contacts, changeChat, socket }) {
       setAllAvailableUsers(users);
     });
   });
+
+  // USE THIS CUSTOM FUNCTION TO LEAVE A ROOM [optional]
+  // const handleLeaveRoom = (contact) => {
+  //   const users = {
+  //     initiator: data._id,
+  //     guest: contact._id,
+  //   };
+  //   socket.emit("leave-room", users);
+  // };
 
   const statusDectector = (userSocketArr, userId) => {
     if (userSocketArr && userId) {
@@ -59,6 +74,7 @@ export default function Contacts({ contacts, changeChat, socket }) {
             <img src={Logo} alt="logo" />
             <h3>LocoQ</h3>
           </div>
+
           <div className="contacts">
             {contacts.map((contact, index) => {
               return (

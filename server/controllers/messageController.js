@@ -12,19 +12,6 @@ const queryParamInvalid = (target) => {
 
 module.exports.getMessages = async (req, res, next) => {
   try {
-    // const { from, to } = req.body;
-    // const messages = await Messages.find({
-    //   users: {
-    //     $all: [from, to],
-    //   },
-    // }).sort({ updatedAt: 1 });
-
-    // const projectedMessages = messages.map((msg) => {
-    //   return {
-    //     fromSelf: msg.sender.toString() === from,
-    //     message: msg.message.text,
-    //   };
-    // });
     let senderIdCheck;
     const { offerId, senderId, receiverId } = req.body;
     try {
@@ -63,14 +50,6 @@ module.exports.getMessages = async (req, res, next) => {
       const messages = await Messages.find({ offerId }).sort({
         createdAt: 1,
       });
-      // const messages = await Messages.find({
-      //   users: {
-      //     $all: [senderId, receiverId],
-      //   },
-      //   offerId: {
-      //     $eq: offerId,
-      //   },
-      // }).sort({ updatedAt: 1 });
       const projectedMessages = messages.map((msg) => {
         return {
           fromSelf: msg.sender.toString() === senderId,
