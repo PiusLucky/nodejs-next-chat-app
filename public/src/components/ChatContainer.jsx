@@ -5,8 +5,11 @@ import Logout from "./Logout";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 
+const offerId = "63148e7f39f89b60f5e3362b"; //demo -- offerId
+
 export default function ChatContainer({ currentChat, socket }) {
   const [messages, setMessages] = useState([]);
+  const [senderId, setSenderId] = useState(null);
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
 
@@ -15,8 +18,8 @@ export default function ChatContainer({ currentChat, socket }) {
     const data = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
+    setSenderId(data._id);
     async function getResponse() {
-      const offerId = "62d7e9c0d83819013a2865bd"; //demo -- offerId
       const response = await axios.get(
         `http://127.0.0.1:5000/api/v2/market/offer/chat/${data._id}/${offerId}`,
         {
@@ -54,20 +57,33 @@ export default function ChatContainer({ currentChat, socket }) {
       message: msg,
       // for sending of message in "IMAGE" format [RESERVED]
       // image: msg,
-      offerId: "62d7e9c0d83819013a2865bd",
+      offerId,
       // type === 'status'
       // type === 'normal'
     });
 
     const msgs = [...messages];
-    msgs.push({ fromSelf: true, message: msg });
+    msgs.push({ from: "SELF", message: msg });
     setMessages(msgs);
+  };
+
+  const detectSender = (msg) => {
+    if (msg?.sender?.toString() === senderId) {
+      return "SELF";
+    }
+    if (msg?.type?.toString() === "STATUS") {
+      return "BOT";
+    }
+    if (msg?.type?.toString() === "ADMIN") {
+      return "ADMIN";
+    }
+    return "COUNTER_PARTY";
   };
 
   useEffect(() => {
     if (socket) {
       socket.on("receive-trade-message", (msg) => {
-        setArrivalMessage({ fromSelf: false, message: msg });
+        setArrivalMessage({ from: detectSender(msg), message: msg });
       });
     }
   }, []);
@@ -100,7 +116,9 @@ export default function ChatContainer({ currentChat, socket }) {
           return (
             <div ref={scrollRef} key={uuidv4()}>
               <div
-                className={`message ${message.fromSelf ? "sent" : "received"}`}
+                className={`message ${
+                  message.from === "SELF" ? "sent" : "received"
+                }`}
               >
                 <div className="content ">
                   <p>{message?.message}</p>

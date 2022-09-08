@@ -52,7 +52,7 @@ module.exports.getMessages = async (req, res, next) => {
       });
       const projectedMessages = messages.map((msg) => {
         return {
-          fromSelf: msg.sender.toString() === senderId,
+          from: msg.sender.toString() === senderId,
           message: msg?.message?.content,
         };
       });
