@@ -34,6 +34,8 @@ export default function ChatContainer({ currentChat, socket }) {
     getResponse();
   }, [currentChat]);
 
+  console.log(">>>>>>>>>>>>", messages);
+
   useEffect(() => {
     const getCurrentChat = async () => {
       if (currentChat) {
@@ -63,7 +65,7 @@ export default function ChatContainer({ currentChat, socket }) {
     });
 
     const msgs = [...messages];
-    msgs.push({ from: "SELF", message: msg });
+    msgs.push({ from: "SELF", message: msg, type: "normal" });
     setMessages(msgs);
   };
 
@@ -83,7 +85,23 @@ export default function ChatContainer({ currentChat, socket }) {
   useEffect(() => {
     if (socket) {
       socket.on("receive-trade-message", (msg) => {
-        setArrivalMessage({ from: detectSender(msg), message: msg });
+        setArrivalMessage({
+          from: detectSender(msg),
+          message: msg,
+          type: "normal",
+        });
+      });
+
+      socket.on("receive-status-message", (msg) => {
+        console.log("Receiving bstatus message", msg);
+        setArrivalMessage({
+          from: "BOT",
+          type: "status",
+          offerInitiatorId: msg?.offerInitiatorId,
+          advertCreatorId: msg?.advertCreatorId,
+          buyerMsg: msg?.buyerMsg,
+          sellerMsg: msg?.sellerMsg,
+        });
       });
     }
   }, []);
@@ -95,8 +113,6 @@ export default function ChatContainer({ currentChat, socket }) {
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  console.log(messages);
 
   return (
     <Container>
@@ -118,10 +134,20 @@ export default function ChatContainer({ currentChat, socket }) {
               <div
                 className={`message ${
                   message.from === "SELF" ? "sent" : "received"
-                }`}
+                } ${message?.type !== "normal" ? "specialMessage" : ""}`}
               >
-                <div className="content ">
-                  <p>{message?.message}</p>
+                <div
+                  className={`content ${
+                    message?.type !== "normal" ? "specialMessage" : ""
+                  }`}
+                >
+                  <p>
+                    {message?.type === "normal"
+                      ? message?.message
+                      : message?.offerInitiatorId === senderId
+                      ? message?.buyerMsg
+                      : message?.sellerMsg}
+                  </p>
                 </div>
               </div>
             </div>
@@ -207,6 +233,14 @@ const Container = styled.div`
       justify-content: flex-start;
       .content {
         background-color: #9900ff20;
+      }
+    }
+
+    .specialMessage {
+      justify-content: center;
+      .content {
+        background-color: #fff;
+        color: #000;
       }
     }
   }
