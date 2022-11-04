@@ -48,7 +48,7 @@ export default function ChatContainer({ currentChat, socket }) {
   }, [currentChat]);
 
   //main logic
-  const handleSendMsg = async (msg) => {
+  const handleSendMsg = async ({ msg = null, file = null }) => {
     const data = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
@@ -56,8 +56,14 @@ export default function ChatContainer({ currentChat, socket }) {
       from: data._id,
       to: currentChat._id,
       // for sending of message in "TEXT" format
-      message: msg,
-      // for sending of message in "IMAGE" format [RESERVED]
+
+      ...(msg && {
+        message: msg,
+      }),
+      // for sending of message in "FILE" format [RESERVED]
+      ...(file && {
+        file,
+      }),
       // image: msg,
       offerId,
       // type === 'status'
@@ -65,7 +71,16 @@ export default function ChatContainer({ currentChat, socket }) {
     });
 
     const msgs = [...messages];
-    msgs.push({ from: "SELF", message: msg, type: "normal" });
+    msgs.push({
+      from: "SELF",
+      ...(msg && {
+        message: msg,
+      }),
+      ...(file && {
+        file,
+      }),
+      type: "normal",
+    });
     setMessages(msgs);
   };
 
@@ -85,15 +100,23 @@ export default function ChatContainer({ currentChat, socket }) {
   useEffect(() => {
     if (socket) {
       socket.on("receive-trade-message", (msg) => {
+        console.log("Receiving normal message", msg);
         setArrivalMessage({
           from: detectSender(msg),
-          message: msg,
+          message: msg.message,
+          ...(msg.message && {
+            message: msg.message,
+          }),
+          // for sending of message in "FILE" format [RESERVED]
+          ...(msg.file && {
+            file: msg.file,
+          }),
           type: "normal",
         });
       });
 
       socket.on("receive-status-message", (msg) => {
-        console.log("Receiving bstatus message", msg);
+        console.log("Receiving status message", msg);
         setArrivalMessage({
           from: "BOT",
           type: "status",
@@ -141,13 +164,17 @@ export default function ChatContainer({ currentChat, socket }) {
                     message?.type !== "normal" ? "specialMessage" : ""
                   }`}
                 >
-                  <p>
-                    {message?.type === "normal"
-                      ? message?.message
-                      : message?.offerInitiatorId === senderId
-                      ? message?.buyerMsg
-                      : message?.sellerMsg}
-                  </p>
+                  {message?.message ? (
+                    <p>
+                      {message?.type === "normal"
+                        ? message?.message
+                        : message?.offerInitiatorId === senderId
+                        ? message?.buyerMsg
+                        : message?.sellerMsg}
+                    </p>
+                  ) : (
+                    <img src={message.file} alt="post avr" className="image" />
+                  )}
                 </div>
               </div>
             </div>
@@ -242,6 +269,11 @@ const Container = styled.div`
         background-color: #fff;
         color: #000;
       }
+    }
+
+    .image {
+      width: 100%;
+      border-radius: 0.5rem;
     }
   }
 `;
