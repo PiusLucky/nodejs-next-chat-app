@@ -48,7 +48,7 @@ export default function ChatContainer({ currentChat, socket }) {
   }, [currentChat]);
 
   //main logic
-  const handleSendMsg = async ({ msg = null, file = null }) => {
+  const handleSendMsg = async ({ msg = null, file = null, name = null }) => {
     const data = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
@@ -56,15 +56,14 @@ export default function ChatContainer({ currentChat, socket }) {
       from: data._id,
       to: currentChat._id,
       // for sending of message in "TEXT" format
-
       ...(msg && {
         message: msg,
       }),
-      // for sending of message in "FILE" format [RESERVED]
+      // for sending of message in "FILE" format [accepts all of these formats - /pdf|jpg|jpeg|png|gif|mp4|webm|mov|avi|mkv|3gp/]
       ...(file && {
         file,
+        name,
       }),
-      // image: msg,
       offerId,
       // type === 'status'
       // type === 'normal'
@@ -78,6 +77,7 @@ export default function ChatContainer({ currentChat, socket }) {
       }),
       ...(file && {
         file,
+        name,
       }),
       type: "normal",
     });
@@ -110,6 +110,7 @@ export default function ChatContainer({ currentChat, socket }) {
           // for sending of message in "FILE" format [RESERVED]
           ...(msg.file && {
             file: msg.file,
+            name: msg.name,
           }),
           type: "normal",
         });
@@ -127,6 +128,7 @@ export default function ChatContainer({ currentChat, socket }) {
         });
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -173,7 +175,14 @@ export default function ChatContainer({ currentChat, socket }) {
                         : message?.sellerMsg}
                     </p>
                   ) : (
-                    <img src={message.file} alt="post avr" className="image" />
+                    <>
+                      <img
+                        src={message.file}
+                        alt="post avr"
+                        className="image"
+                      />
+                      <small>{message.name}</small>
+                    </>
                   )}
                 </div>
               </div>

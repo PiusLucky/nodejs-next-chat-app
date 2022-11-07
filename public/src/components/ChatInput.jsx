@@ -28,7 +28,8 @@ export default function ChatInput({ handleSendMsg }) {
   const sendFileChat = (event) => {
     event.preventDefault();
     handleSendMsg({
-      file: "https://pixabay.com/get/g643d5b3ba95d241f07e1e0e630002ad780c3e8c5dcb4e85aee1e692d081ef7f0de6c5030c31269476926bf54d6b0c70a0fbffd188193dde7832f9683eda96886f4aa12af7746078e1d789f291ee16b5a_640.jpg",
+      file: "https://cdn.pixabay.com/photo/2016/01/20/11/11/baby-1151351_960_720.jpg",
+      name: "sleeping-baby.jpg",
     });
   };
 
