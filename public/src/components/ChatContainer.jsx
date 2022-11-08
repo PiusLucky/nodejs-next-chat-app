@@ -4,6 +4,7 @@ import ChatInput from "./ChatInput";
 import Logout from "./Logout";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
+import { v4 as uuid } from 'uuid';
 
 const offerId = "63148e7f39f89b60f5e3362b"; //demo -- offerId
 
@@ -65,6 +66,7 @@ export default function ChatContainer({ currentChat, socket }) {
         name,
       }),
       offerId,
+      trackId: uuid(),
       // type === 'status'
       // type === 'normal'
     });

@@ -3,6 +3,7 @@ import { BsEmojiSmileFill } from "react-icons/bs";
 import { IoMdSend } from "react-icons/io";
 import styled from "styled-components";
 import Picker from "emoji-picker-react";
+import { v4 as uuid } from "uuid";
 
 export default function ChatInput({ handleSendMsg }) {
   const [msg, setMsg] = useState("");
@@ -30,6 +31,7 @@ export default function ChatInput({ handleSendMsg }) {
     handleSendMsg({
       file: "https://cdn.pixabay.com/photo/2016/01/20/11/11/baby-1151351_960_720.jpg",
       name: "sleeping-baby.jpg",
+      trackId: uuid(),
     });
   };
 
