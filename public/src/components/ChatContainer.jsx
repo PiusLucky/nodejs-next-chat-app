@@ -145,7 +145,10 @@ export default function ChatContainer({ currentChat, socket }) {
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+ 
 
+  //TODO: This has to be placed in a better place
+  // To know when a user has read the message.
   useEffect(() => {
     //get all unread messages
     const unreadMessages = messages?.filter((msg) => msg.read === false);

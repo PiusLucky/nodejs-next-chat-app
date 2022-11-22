@@ -29,6 +29,7 @@ export default function Contacts({ contacts, changeChat, socket }) {
 
   useEffect(() => {
     socket.on("all-users", (users) => {
+      console.log(users);
       setAllAvailableUsers(users);
     });
   });
@@ -41,6 +42,8 @@ export default function Contacts({ contacts, changeChat, socket }) {
   //   };
   //   socket.emit("leave-room", users);
   // };
+
+  // console.log(idleTimer);
 
   const statusDectector = (userSocketArr, userId) => {
     if (userSocketArr && userId) {
