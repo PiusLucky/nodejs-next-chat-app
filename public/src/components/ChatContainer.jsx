@@ -4,9 +4,9 @@ import ChatInput from "./ChatInput";
 import Logout from "./Logout";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from "uuid";
 
-const offerId = "63148e7f39f89b60f5e3362b"; //demo -- offerId
+const offerId = "6313d361c979f66cbda76fa7"; //demo -- offerId
 
 export default function ChatContainer({ currentChat, socket }) {
   const [messages, setMessages] = useState([]);
@@ -14,25 +14,29 @@ export default function ChatContainer({ currentChat, socket }) {
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
 
+  const getAllMessagesFunc = async () => {
+    const data = await JSON.parse(
+      localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
+    );
+    const response = await axios.get(
+      `http://127.0.0.1:5000/api/v2/market/offer/chat/${data._id}/${offerId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.REACT_APP_TOKEN}`,
+        },
+      }
+    );
+    return response;
+  };
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(async () => {
     const data = await JSON.parse(
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
     setSenderId(data._id);
-    async function getResponse() {
-      const response = await axios.get(
-        `http://127.0.0.1:5000/api/v2/market/offer/chat/${data._id}/${offerId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.REACT_APP_TOKEN}`,
-          },
-        }
-      );
-      console.log(response);
-      setMessages(response.data.data);
-    }
-    getResponse();
+    const response = await getAllMessagesFunc();
+    setMessages(response.data.data);
   }, [currentChat]);
 
   console.log(">>>>>>>>>>>>", messages);
@@ -130,6 +134,7 @@ export default function ChatContainer({ currentChat, socket }) {
         });
       });
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -139,6 +144,21 @@ export default function ChatContainer({ currentChat, socket }) {
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    //get all unread messages
+    const unreadMessages = messages?.filter((msg) => msg.read === false);
+    unreadMessages?.map((msg) => {
+      socket.emit("message-read", msg);
+    });
+  }, [messages]);
+
+  useEffect(() => {
+    socket.on("message-read-response", async (_) => {
+      const response = await getAllMessagesFunc();
+      setMessages(response.data.data);
+    });
   }, [messages]);
 
   return (
@@ -169,15 +189,23 @@ export default function ChatContainer({ currentChat, socket }) {
                   }`}
                 >
                   {message?.message ? (
-                    <p>
-                      {message?.type === "normal"
-                        ? message?.message
-                        : message?.offerInitiatorId === senderId
-                        ? message?.buyerMsg
-                        : message?.sellerMsg}
-                    </p>
+                    <>
+                      {message.from === "SELF" ? (
+                        <b>read: {message?.read ? "true" : "false"} </b>
+                      ) : (
+                        ""
+                      )}
+                      <p>
+                        {message?.type === "normal"
+                          ? message?.message
+                          : message?.offerInitiatorId === senderId
+                          ? message?.buyerMsg
+                          : message?.sellerMsg}
+                      </p>
+                    </>
                   ) : (
                     <>
+                      <b>read: {message?.read} </b>
                       <img
                         src={message.file}
                         alt="post avr"
