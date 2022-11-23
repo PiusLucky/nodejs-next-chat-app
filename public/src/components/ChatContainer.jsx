@@ -8,26 +8,29 @@ import { v4 as uuid } from "uuid";
 
 const offerId = "6313d361c979f66cbda76fa7"; //demo -- offerId
 
+export const getAllMessagesFunc = async () => {
+  const data = await JSON.parse(
+    localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
+  );
+  const response = await axios.get(
+    `http://127.0.0.1:5000/api/v2/market/offer/chat/${data._id}/${offerId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.REACT_APP_TOKEN}`,
+      },
+    }
+  );
+  return response;
+};
+
 export default function ChatContainer({ currentChat, socket }) {
   const [messages, setMessages] = useState([]);
   const [senderId, setSenderId] = useState(null);
   const scrollRef = useRef();
   const [arrivalMessage, setArrivalMessage] = useState(null);
+  const [renderComp, setRenderComp] = useState(Math.random());
 
-  const getAllMessagesFunc = async () => {
-    const data = await JSON.parse(
-      localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
-    );
-    const response = await axios.get(
-      `http://127.0.0.1:5000/api/v2/market/offer/chat/${data._id}/${offerId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.REACT_APP_TOKEN}`,
-        },
-      }
-    );
-    return response;
-  };
+  const trackId = uuid();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(async () => {
@@ -70,7 +73,7 @@ export default function ChatContainer({ currentChat, socket }) {
         name,
       }),
       offerId,
-      trackId: uuid(),
+      trackId,
       // type === 'status'
       // type === 'normal'
     });
@@ -86,6 +89,10 @@ export default function ChatContainer({ currentChat, socket }) {
         name,
       }),
       type: "normal",
+      trackId,
+      sender: data._id,
+      receiver: currentChat._id,
+      read: false,
     });
     setMessages(msgs);
   };
@@ -145,25 +152,39 @@ export default function ChatContainer({ currentChat, socket }) {
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
- 
 
-  //TODO: This has to be placed in a better place
-  // To know when a user has read the message.
   useEffect(() => {
-    //get all unread messages
-    const unreadMessages = messages?.filter((msg) => msg.read === false);
+    messageRead();
+  }, [messages]);
+
+  useEffect(() => {
+    socket.on("message-read-response", async (newMessage) => {
+      console.log(newMessage); //read response
+      const condition = (existingMessage) =>
+        existingMessage.trackId === newMessage.trackId;
+
+      if (messages.length > 0) {
+        const targetMessageIndex = messages.findIndex(condition);
+        if (targetMessageIndex !== -1) {
+          messages[targetMessageIndex].read = true;
+          //Force render the component to reflect new changes
+          setRenderComp(Math.random());
+        }
+      }
+    });
+  }, [messages]);
+
+  const messageRead = async () => {
+    const response = await getAllMessagesFunc();
+    const messages = response.data.data;
+    const unreadMessages = messages?.filter(
+      (msg) => msg.read === false && msg.sender === currentChat._id
+    );
     unreadMessages?.map((msg) => {
-      socket.emit("message-read", msg);
+      const markMessageAsRead = { ...msg, read: true };
+      socket.emit("message-read", markMessageAsRead);
     });
-  }, [messages]);
-
-  useEffect(() => {
-    socket.on("message-read-response", async (msg) => {
-      //do whatever u want with 'msg'
-      const response = await getAllMessagesFunc();
-      setMessages(response.data.data);
-    });
-  }, [messages]);
+  };
 
   return (
     <Container>
