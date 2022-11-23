@@ -158,7 +158,8 @@ export default function ChatContainer({ currentChat, socket }) {
   }, [messages]);
 
   useEffect(() => {
-    socket.on("message-read-response", async (_) => {
+    socket.on("message-read-response", async (msg) => {
+      //do whatever u want with 'msg'
       const response = await getAllMessagesFunc();
       setMessages(response.data.data);
     });
