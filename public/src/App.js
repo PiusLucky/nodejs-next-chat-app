@@ -30,7 +30,7 @@ export default function App() {
     socket.emit("update-user-status-login", user._id);
   };
 
-  const idleTimer = useIdleTimer({ onIdle, onActive, timeout: 1000 * 5 }); //1 minute
+  const idleTimer = useIdleTimer({ onIdle, onActive, timeout: 1000 * 20 }); //1 minute
 
   console.log(idleTimer.isIdle());
 

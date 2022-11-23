@@ -35,6 +35,10 @@ export default function ChatInput({ handleSendMsg }) {
     });
   };
 
+  const handleChange = async (e) => {
+    setMsg(e.target.value);
+  };
+
   return (
     <Container>
       <div className="button-container">
@@ -48,7 +52,7 @@ export default function ChatInput({ handleSendMsg }) {
         <input
           type="text"
           placeholder="type your message here"
-          onChange={(e) => setMsg(e.target.value)}
+          onChange={async (e) => await handleChange(e)}
           value={msg}
         />
         <button type="submit">
